@@ -42,12 +42,12 @@ public class PlayerCont : NetworkBehaviour
         if (other.gameObject.tag == "Player")
             if (!other.gameObject.GetComponent<PlayerCont>().invulnerability && _blinked)
             {
-                other.gameObject.GetComponent<PlayerCont>().CmdHit();
+                CmdHit(other.gameObject);
                 _score++;
                 if (_score == 3)
                 {
                     //TODO иммя выводим победителя и перезапуск сцены через 5 сек
-                    NetworkManager.singleton.ServerChangeScene(SceneManager.GetActiveScene().name);
+ //                   NetworkManager.singleton.ServerChangeScene(SceneManager.GetActiveScene().name);
                 }
             }
     }
@@ -89,18 +89,21 @@ public class PlayerCont : NetworkBehaviour
     }
     
     [Command]
-    public void CmdHit()
+    public void CmdHit(GameObject collor)
     {
+        if(!isServer) return;
         invulnerability = true;
-        StartCoroutine(Invul());
+        Invul(collor);
+//        StartCoroutine(Invul());
     }
    
-    
-    IEnumerator Invul()
+    [ClientRpc]
+ //   IEnumerator Invul()
+ public void Invul(GameObject obj)
     {
-        GetComponent<Renderer>().material.color = Color.black;
-        yield return new WaitForSeconds(_timeInvulnerability);
-        GetComponent<Renderer>().material.color = _colorInst;
+        obj.GetComponent<Renderer>().material.color = Color.black;
+//        yield return new WaitForSeconds(_timeInvulnerability);
+//        GetComponent<Renderer>().material.color = _colorInst;
         invulnerability = false;
     }
 
@@ -114,6 +117,7 @@ public class PlayerCont : NetworkBehaviour
             yield return new WaitForFixedUpdate();
         }
 
-        _blinked = false;
+ //       yield return new WaitForSeconds(0.5f);
+ //       _blinked = false;
     }
 }
