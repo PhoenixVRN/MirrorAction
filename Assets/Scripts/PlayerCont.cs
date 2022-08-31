@@ -15,12 +15,18 @@ public class PlayerCont : NetworkBehaviour
     [SerializeField, Header("Время неуязвимости"), Space] private float _timeInvulnerability;
     [HideInInspector] public bool invulnerability;
     
+    [SyncVar][SerializeField]
     private Color _color;
+    [SyncVar][SerializeField]
     private Color _colorInst;
+    
     private float _blinkOut;
     private int _score;
+
+    private Rigidbody rb;
     void Start()
     {
+        rb = GetComponent<Rigidbody>();
         if (!isLocalPlayer) playerCamera.gameObject.SetActive(false);
         _score = 0;
     }
@@ -36,7 +42,7 @@ public class PlayerCont : NetworkBehaviour
         if (other.gameObject.tag == "Player")
             if (!other.gameObject.GetComponent<PlayerCont>().invulnerability && _blinked)
             {
-                other.gameObject.GetComponent<PlayerCont>().Hit();
+                other.gameObject.GetComponent<PlayerCont>().CmdHit();
                 _score++;
                 if (_score == 3)
                 {
@@ -45,6 +51,7 @@ public class PlayerCont : NetworkBehaviour
                 }
             }
     }
+    
     private void GetInput()
     {
         if (Input.GetMouseButtonDown(0))
@@ -81,7 +88,8 @@ public class PlayerCont : NetworkBehaviour
         }
     }
     
-    public void Hit()
+    [Command]
+    public void CmdHit()
     {
         invulnerability = true;
         StartCoroutine(Invul());
@@ -100,7 +108,8 @@ public class PlayerCont : NetworkBehaviour
     {
         while (_blinkOut > 0)
         {
-            transform.localPosition += transform.forward * blinkSpeed * Time.deltaTime;
+ //           transform.localPosition += transform.forward * blinkSpeed * Time.deltaTime;
+            rb.AddForce(transform.forward * blinkSpeed);
             _blinkOut -= Time.deltaTime;
             yield return new WaitForFixedUpdate();
         }
